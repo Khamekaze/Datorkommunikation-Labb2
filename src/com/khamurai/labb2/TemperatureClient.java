@@ -51,7 +51,7 @@ public class TemperatureClient implements Runnable {
                 message.setQos(qos);
                 sampleClient.publish(topic, message);
                 System.out.println("TempClient Message published");
-                Thread.sleep(5000);
+                Thread.sleep(60000);
             }
             sampleClient.disconnect();
             System.out.println("Disconnected");

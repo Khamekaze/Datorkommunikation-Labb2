@@ -13,6 +13,8 @@ public class DataLogger implements Runnable {
     String tempTopic = "KYH/Temp";
     String managerTopic = "KYH/Response";
 
+    boolean running = true;
+
     DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     @Override
@@ -25,18 +27,23 @@ public class DataLogger implements Runnable {
         try {
             MqttClient sampleClient = new MqttClient(broker, clientId, persistence);
             MqttConnectOptions connOpts = new MqttConnectOptions();
-            connOpts.setCleanSession(true);
+            connOpts.setCleanSession(false);
             System.out.println("Connecting to broker: " + broker);
             sampleClient.connect(connOpts);
             System.out.println("Connected");
+            subscribe(tempTopic, qos, sampleClient);
+            subscribe(managerTopic, qos, sampleClient);
 
-            while(sampleClient.isConnected()) {
-                subscribe(tempTopic, qos, sampleClient);
-                subscribe(managerTopic, qos, sampleClient);
-                Thread.sleep(1000);
-            }
+
             sampleClient.disconnect();
             System.out.println("Disconnected");
+
+            Thread.sleep(120000);
+            sampleClient.connect(connOpts);
+
+            while (sampleClient.isConnected()) {
+
+            }
             System.exit(0);
         } catch (MqttException me) {
             System.out.println("reason " + me.getReasonCode());
@@ -83,5 +90,9 @@ public class DataLogger implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void stopThread() {
+        running = false;
     }
 }

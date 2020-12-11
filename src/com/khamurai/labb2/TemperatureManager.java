@@ -50,16 +50,15 @@ public class TemperatureManager implements Runnable {
             System.out.println("Connecting to broker: " + broker);
             sampleClient.connect(connOpts);
             System.out.println("Connected");
-
+            subscribe(topic, qos, sampleClient);
             while(sampleClient.isConnected()) {
-                subscribe(topic, qos, sampleClient);
                 Thread.sleep(1000);
                 System.out.println("Publishing response: " + responseMessage);
                 MqttMessage message = new MqttMessage(responseMessage.getBytes());
                 message.setQos(qos);
                 sampleClient.publish(responseTopic, message);
                 System.out.println("TempManager Message published");
-                Thread.sleep(4000);
+                Thread.sleep(59000);
             }
             sampleClient.disconnect();
             System.out.println("Disconnected");
