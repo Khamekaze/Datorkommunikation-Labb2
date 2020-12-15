@@ -8,19 +8,15 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class DataLogger implements Runnable {
+public class DataLogger implements MqttCallback {
 
-    String tempTopic = "KYH/Temp";
-    String managerTopic = "KYH/Response";
-
-    boolean running = true;
+    String tempTopic = Constants.TOPIC_TEMP;
+    String managerTopic = Constants.TOPIC_CONTROLLER;
 
     DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
-    @Override
-    public void run() {
-        int qos = 2;
-        String broker = "tcp://broker.hivemq.com:1883";
+    public DataLogger() {
+        String broker = Constants.BROKER_CONNECTION;
         String clientId = "DataLogger";
         MemoryPersistence persistence = new MemoryPersistence();
 
@@ -31,15 +27,10 @@ public class DataLogger implements Runnable {
             System.out.println("Connecting to broker: " + broker);
             sampleClient.connect(connOpts);
             System.out.println("Connected");
-            subscribe(tempTopic, qos, sampleClient);
-            subscribe(managerTopic, qos, sampleClient);
+            sampleClient.setCallback(this);
 
-
-            sampleClient.disconnect();
-            System.out.println("Disconnected");
-
-            Thread.sleep(120000);
-            sampleClient.connect(connOpts);
+            sampleClient.subscribe(tempTopic);
+            sampleClient.subscribe(managerTopic);
 
             while (sampleClient.isConnected()) {
 
@@ -52,31 +43,11 @@ public class DataLogger implements Runnable {
             System.out.println("cause " + me.getCause());
             System.out.println("excep " + me);
             me.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
-    void subscribe(String topic, int qos, MqttClient client) throws MqttException {
-        MqttCallback callback = new MqttCallback() {
-
-            @Override
-            public void messageArrived(String topic, MqttMessage message) throws Exception {
-                System.out.println("DATALOGGER GOT MESSAGE: " + message);
-                writeToFile(topic, message.toString());
-            }
-
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {
-            }
-
-            @Override
-            public void connectionLost(Throwable cause) {
-                cause.printStackTrace();
-            }
-        };
-        client.subscribe(topic);
-        client.setCallback(callback);
+    public static void main(String[] args) {
+        DataLogger logger = new DataLogger();
     }
 
     void writeToFile(String topic, String message) {
@@ -92,7 +63,19 @@ public class DataLogger implements Runnable {
         }
     }
 
-    public void stopThread() {
-        running = false;
+    @Override
+    public void connectionLost(Throwable throwable) {
+
+    }
+
+    @Override
+    public void messageArrived(String s, MqttMessage mqttMessage) throws Exception {
+        System.out.println("DATALOGGER GOT MESSAGE: " + mqttMessage);
+        writeToFile(s, mqttMessage.toString());
+    }
+
+    @Override
+    public void deliveryComplete(IMqttDeliveryToken iMqttDeliveryToken) {
+
     }
 }

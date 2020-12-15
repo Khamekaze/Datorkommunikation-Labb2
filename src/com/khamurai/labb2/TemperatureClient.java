@@ -10,37 +10,19 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-public class TemperatureClient implements Runnable {
+public class TemperatureClient {
 
-    String setNewTemperature() {
-        double temp = ((Math.random() * (25 - 15)) + 15);
-        DecimalFormat df = new DecimalFormat("#.##");
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.getDefault());
-        symbols.setGroupingSeparator('.');
-        symbols.setDecimalSeparator('.');
-        df.setDecimalFormatSymbols(symbols);
-        return df.format(temp);
-    }
-
-    @Override
-    public void run() {
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        String topic = "KYH/Temp";
+    public TemperatureClient() {
+        String topic = Constants.TOPIC_TEMP;
         String content = "";
-        int qos = 2;
-        String broker = "tcp://broker.hivemq.com:1883";
+        int qos = 1;
+        String broker = Constants.BROKER_CONNECTION;
         String clientId = "TempClient";
         MemoryPersistence persistence = new MemoryPersistence();
 
         try {
             MqttClient sampleClient = new MqttClient(broker, clientId, persistence);
             MqttConnectOptions connOpts = new MqttConnectOptions();
-            connOpts.setCleanSession(false);
             System.out.println("Connecting to broker: " + broker);
             sampleClient.connect(connOpts);
             System.out.println("Connected");
@@ -66,5 +48,19 @@ public class TemperatureClient implements Runnable {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) {
+        TemperatureClient client = new TemperatureClient();
+    }
+
+    String setNewTemperature() {
+        double temp = ((Math.random() * (25 - 15)) + 15);
+        DecimalFormat df = new DecimalFormat("#.##");
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.getDefault());
+        symbols.setGroupingSeparator('.');
+        symbols.setDecimalSeparator('.');
+        df.setDecimalFormatSymbols(symbols);
+        return df.format(temp);
     }
 }
