@@ -9,6 +9,7 @@ public class TemperatureManager implements MqttCallback {
     String topic = Constants.TOPIC_TEMP;
     String responseTopic = Constants.TOPIC_CONTROLLER;
     MqttClient sampleClient = null;
+    boolean connected = true;
 
     public TemperatureManager() {
         String broker = Constants.BROKER_CONNECTION;
@@ -20,11 +21,16 @@ public class TemperatureManager implements MqttCallback {
             MqttConnectOptions connOpts = new MqttConnectOptions();
             connOpts.setCleanSession(false);
             System.out.println("Connecting to broker: " + broker);
+
             sampleClient.connect(connOpts);
-            System.out.println("Connected");
+
+            if(sampleClient.isConnected()) {
+                System.out.println("Connected");
+            }
             sampleClient.setCallback(this);
             sampleClient.subscribe(topic);
-            while(sampleClient.isConnected()) {
+
+            while(connected) {
 
             }
             sampleClient.disconnect();
@@ -45,7 +51,13 @@ public class TemperatureManager implements MqttCallback {
     }
 
     String checkTemperature(String temp) {
-        double parsedTemp = Double.valueOf(temp);
+        double parsedTemp = 0.0;
+        try {
+            parsedTemp = Double.parseDouble(temp);
+        } catch (NumberFormatException n) {
+            return "/";
+        }
+
         if(parsedTemp < 22.0) {
             return "+";
         } else {

@@ -18,14 +18,19 @@ public class TemperatureClient {
         int qos = 1;
         String broker = Constants.BROKER_CONNECTION;
         String clientId = "TempClient";
+        String lastWill = "ERROR";
         MemoryPersistence persistence = new MemoryPersistence();
 
         try {
             MqttClient sampleClient = new MqttClient(broker, clientId, persistence);
             MqttConnectOptions connOpts = new MqttConnectOptions();
             System.out.println("Connecting to broker: " + broker);
+            connOpts.setWill(Constants.TOPIC_TEMP, lastWill.getBytes(), 2, false);
             sampleClient.connect(connOpts);
-            System.out.println("Connected");
+            if(sampleClient.isConnected()) {
+                System.out.println("Connected");
+            }
+
             while(sampleClient.isConnected()) {
                 content = setNewTemperature();
                 System.out.println("Publishing message: " + content);
@@ -33,7 +38,7 @@ public class TemperatureClient {
                 message.setQos(qos);
                 sampleClient.publish(topic, message);
                 System.out.println("TempClient Message published");
-                Thread.sleep(60000);
+                Thread.sleep(1000);
             }
             sampleClient.disconnect();
             System.out.println("Disconnected");

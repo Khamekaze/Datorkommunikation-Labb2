@@ -27,10 +27,11 @@ public class DataLogger implements MqttCallback {
             System.out.println("Connecting to broker: " + broker);
             sampleClient.connect(connOpts);
             System.out.println("Connected");
-            sampleClient.setCallback(this);
 
+            sampleClient.setCallback(this);
             sampleClient.subscribe(tempTopic);
             sampleClient.subscribe(managerTopic);
+
 
             while (sampleClient.isConnected()) {
 
